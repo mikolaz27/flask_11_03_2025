@@ -29,14 +29,14 @@ def hello_world():
 #
 # flask.palletsprojects.com -> 104.16.254.120
 # facebook.com -> 57.144.110.1
-#
-#
+
+
 # 443 - https
 # 80 - http
 # 22 - ssh
 # 5432 - database (postgres)
 # 8000 -
-#
+
 # en/stable/quickstart
 #1
 
