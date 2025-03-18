@@ -1,6 +1,18 @@
-from flask import Flask
+import pprint
+import string
+
+import httpx
+
+from random import choices
+from http import HTTPStatus
+
+from flask import Flask, request
+from webargs.flaskparser import use_kwargs
+
+from validator import password_length_validator
 
 app = Flask(__name__)
+
 
 @app.route("/admin")
 def hello_world_admin():
@@ -12,33 +24,52 @@ def hello_world():
     return "<p>Hello, Mykhailo!!!</p>"
 
 
-# https://flask.palletsprojects.com:443/en/stable/quickstart#1
-# https | http
-# SSL
-#
-# c -> r1 -> r2 -> r3 -> r4 -> s5
-#            |
-#           check data
-#
-# flask.palletsprojects.com
-# domain
-# DNS
-# Василь робота -> 067-564-98-74
-# Іванка перехмахер -> 067-564-98-73
-# Петро сусід -> 067-564-98-71
-#
-# flask.palletsprojects.com -> 104.16.254.120
-# facebook.com -> 57.144.110.1
+@app.route("/generate-password")
+@use_kwargs(
+    password_length_validator,
+    location="query"
+)
+def generate_password(length):
+    # password_length = request.args.get("length", default="10")
+    #
+    # if not password_length.isdigit():
+    #     return "ERROR: length should be a number!"
+    #
+    # password_length = int(password_length)
+    #
+    # if not 8 <= password_length <= 100:
+    #     return "ERROR: password length should be in range: [8, 100]"
 
+    # GET
+    #  - get info
+    #  - in url path
+    #  - search, filter
+    # POST
+    #  - change info
+    #  - with body
+    #  - for secure data (password, credit cards ...), files,
 
-# 443 - https
-# 80 - http
-# 22 - ssh
-# 5432 - database (postgres)
-# 8000 -
+    password = "".join(
+        choices(string.digits + string.ascii_letters + string.punctuation, k=length)
+    )
+    return f"Generated password: {password}"
 
-# en/stable/quickstart
-#1
+@app.route("/get-astronauts")
+def get_astronauts():
+    url = "http://api.open-notify.org/astros.json"
+    result = httpx.get(url=url, params={})
+
+    if result.status_code not in (HTTPStatus.OK, ):
+        return "ERROR: Something went wrong with api.open-notify.org"
+
+    result: dict = result.json()
+    statistics = { }
+    for entry in result.get('people', []):
+        statistics[entry['craft']] = statistics.get(entry['craft'], 0) + 1
+
+    pprint.pprint(result)
+
+    return statistics
 
 if __name__ == '__main__':
     app.run(
