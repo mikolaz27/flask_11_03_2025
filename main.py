@@ -8,7 +8,9 @@ from http import HTTPStatus
 
 from flask import Flask, request
 from webargs.flaskparser import use_kwargs
+from webargs import validate, fields
 
+from database_handler import execute_query
 from validator import password_length_validator
 
 app = Flask(__name__)
@@ -70,6 +72,43 @@ def get_astronauts():
     pprint.pprint(result)
 
     return statistics
+
+
+
+@app.route("/get-customers")
+@use_kwargs(
+    {
+        "first_name": fields.Str(
+           required=True,
+        ),
+         "last_name": fields.Str(
+           load_default=None,
+        ),
+    },
+    location="query"
+)
+def get_all_customers(first_name, last_name):
+    # TODO: I will need it later when task 023 will be available
+    query = "SELECT FirstName, LastName FROM customers"
+
+    fields = {}
+
+    if first_name:
+        fields['FirstName'] = first_name
+    if last_name:
+        fields['LastName'] = last_name
+
+    if fields:
+
+        # create where condition for query using accumulation of fields
+        query += " WHERE " + " AND ".join(
+            f"{key}=?" for key in fields
+        )
+
+    print(query)
+    records = execute_query(query=query, args=tuple(fields.values()))
+    return records
+
 
 if __name__ == '__main__':
     app.run(
